@@ -15,6 +15,7 @@ A Visual Studio Code extension that automatically converts CSS styles to JavaScr
 ### Automatic Conversion
 
 1. Copy some CSS properties:
+
 ```css
 margin-top: 16px;
 background-color: #fff;
@@ -22,6 +23,7 @@ padding: 8px;
 ```
 
 2. Paste into a JavaScript style object or JSX style prop:
+
 ```jsx
 // In a style object
 const styles = {
@@ -50,7 +52,7 @@ When pasting into an `sx` prop, the extension automatically uses MUI's shorthand
   // margin: 16px;
   // width: 100%;
   // padding: 8px;
-  // 
+  //
   // Converts to:
   m: 2,
   width: 1,
@@ -78,13 +80,6 @@ This extension can be customized through VS Code settings:
 - TypeScript (.ts)
 - React JSX (.jsx)
 - React TSX (.tsx)
-
-## Installation
-
-1. Open VS Code
-2. Press `Ctrl+P` / `Cmd+P`
-3. Type `ext install auto-css-to-js`
-4. Press Enter
 
 ## Release Notes
 

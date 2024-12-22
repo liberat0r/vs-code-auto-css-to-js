@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.84.0"
   },
   "categories": [
     "Other"
@@ -19,6 +19,11 @@
     "onCommand:auto-css-to-js.convert"
   ],
   "main": "./out/extension.js",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/liberat0r/vs-code-auto-css-to-js.git"
+  },
   "contributes": {
     "commands": [
       {
