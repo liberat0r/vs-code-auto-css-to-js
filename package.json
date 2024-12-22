@@ -1,0 +1,66 @@
+{
+  "name": "auto-css-to-js",
+  "displayName": "Auto CSS to JS",
+  "description": "Convert CSS styles to JavaScript objects via a command or whenever they are pasted within valid context.",
+  "publisher": "liberat0r",
+  "version": "0.0.1",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact",
+    "onCommand:auto-css-to-js.convert"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "auto-css-to-js.convert",
+        "title": "Convert CSS to JS"
+      }
+    ],
+    "configuration": {
+      "title": "Auto CSS to JS",
+      "properties": {
+        "autoCssToJs.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable automatic CSS to JS conversion on paste"
+        },
+        "autoCssToJs.removePixelUnit": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove 'px' unit and convert to number"
+        },
+        "autoCssToJs.quoteValues": {
+          "type": "boolean",
+          "default": true,
+          "description": "Add quotes to non-numeric values"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "18.x",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  }
+}
