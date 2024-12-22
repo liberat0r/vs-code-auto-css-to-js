@@ -178,6 +178,10 @@ const muiShorthands: { [key: string]: string } = {
   marginRight: "mr",
   marginBottom: "mb",
   marginLeft: "ml",
+  "margin-top": "mt",
+  "margin-right": "mr",
+  "margin-bottom": "mb",
+  "margin-left": "ml",
 
   // Paddings
   padding: "p",
@@ -185,9 +189,14 @@ const muiShorthands: { [key: string]: string } = {
   paddingRight: "pr",
   paddingBottom: "pb",
   paddingLeft: "pl",
+  "padding-top": "pt",
+  "padding-right": "pr",
+  "padding-bottom": "pb",
+  "padding-left": "pl",
 
   // Colors and Backgrounds
   backgroundColor: "bgcolor",
+  "background-color": "bgcolor",
 };
 
 // Properties that use theme.spacing multiplier (divide by 8)
@@ -236,8 +245,20 @@ function formatMuiValue(property: string, value: string): string {
   const numValue = parseFloat(cleanValue);
   if (isNaN(numValue)) return value;
 
-  // Handle spacing properties (margins, paddings, gaps)
-  if (spacingProperties.has(property)) {
+  // Handle margin and padding values
+  if (property.startsWith("margin") || property.startsWith("padding")) {
+    if (property === "margin" || property === "padding") {
+      const values = cleanValue.split(" ");
+      const prefix = property === "margin" ? "m" : "p";
+      if (values.length === 4) {
+        return `{
+          ${prefix}t: ${parseFloat(values[0]) / 8},
+          ${prefix}r: ${parseFloat(values[1]) / 8},
+          ${prefix}b: ${parseFloat(values[2]) / 8},
+          ${prefix}l: ${parseFloat(values[3]) / 8},
+        }`;
+      }
+    }
     return String(numValue / 8);
   }
 
