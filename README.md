@@ -93,7 +93,7 @@ This extension can be customized through VS Code settings:
 
 ## Contributing
 
-Found a bug or have a feature request? Please open an issue on our [GitHub repository](https://github.com/yourusername/auto-css-to-js).
+Found a bug or have a feature request? Please open an issue on our [GitHub repository](https://github.com/liberat0r/vs-code-auto-css-to-js).
 
 ## License
 
