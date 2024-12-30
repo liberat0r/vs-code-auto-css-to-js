@@ -3,7 +3,7 @@
   "displayName": "Auto CSS to JS",
   "description": "Convert CSS styles to JavaScript objects via a command or whenever they are pasted within valid context.",
   "publisher": "liberat0r",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "license": "MIT",
   "engines": {
     "vscode": "^1.84.0"
