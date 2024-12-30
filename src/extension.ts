@@ -38,8 +38,7 @@ export async function activate(context: vscode.ExtensionContext) {
         // Check if the feature is enabled
         const config = vscode.workspace.getConfiguration("autoCssToJs");
         if (!config.get<boolean>("enabled", true)) {
-          // If disabled, just do a normal paste
-          await vscode.commands.executeCommand("default:paste");
+          await vscode.commands.executeCommand("default:type", { text: await vscode.env.clipboard.readText() });
           return;
         }
 
@@ -51,8 +50,7 @@ export async function activate(context: vscode.ExtensionContext) {
         ];
 
         if (!supportedLanguages.includes(editor.document.languageId)) {
-          // If not in a supported file, just do a normal paste
-          await vscode.commands.executeCommand("default:paste");
+          await vscode.commands.executeCommand("default:type", { text: await vscode.env.clipboard.readText() });
           return;
         }
 
@@ -60,14 +58,12 @@ export async function activate(context: vscode.ExtensionContext) {
         const clipboardText = await vscode.env.clipboard.readText();
         const pastedText = clipboardText.trim();
 
-        if (!pastedText) {
-          await vscode.commands.executeCommand("default:paste");
-          return;
-        }
-
-        // Skip if it starts with a curly brace (likely already JS)
-        if (pastedText.startsWith("{")) {
-          await vscode.commands.executeCommand("default:paste");
+        // Quick early returns for obvious non-CSS content
+        if (!pastedText || 
+            pastedText.startsWith('{') || 
+            !pastedText.includes(':') || 
+            !/-/.test(pastedText)) {
+          await vscode.commands.executeCommand("default:type", { text: clipboardText });
           return;
         }
 
@@ -75,9 +71,11 @@ export async function activate(context: vscode.ExtensionContext) {
         if (
           pastedText.includes(":{") ||
           /[A-Z]/.test(pastedText) ||
-          /[:,]\s*function/.test(pastedText)
+          /[:,]\s*function/.test(pastedText) ||
+          pastedText.includes("fontSize") ||
+          pastedText.includes("backgroundColor")
         ) {
-          await vscode.commands.executeCommand("default:paste");
+          await vscode.commands.executeCommand("default:type", { text: clipboardText });
           return;
         }
 
@@ -85,7 +83,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const isCSS = looksLikeCSS(pastedText);
 
         if (!isCSS) {
-          await vscode.commands.executeCommand("default:paste");
+          await vscode.commands.executeCommand("default:type", { text: clipboardText });
           return;
         }
 
@@ -126,11 +124,12 @@ export async function activate(context: vscode.ExtensionContext) {
           await vscode.commands.executeCommand("editor.action.formatDocument");
         } else {
           // If not in a style context, just do a normal paste
-          await vscode.commands.executeCommand("default:paste");
+          await vscode.commands.executeCommand("default:type", { text: clipboardText });
         }
       } catch (error) {
         // If there's an error, fall back to normal paste
-        await vscode.commands.executeCommand("default:paste");
+        const fallbackText = await vscode.env.clipboard.readText();
+        await vscode.commands.executeCommand("default:type", { text: fallbackText });
       }
     }
   );
