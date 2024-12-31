@@ -3,7 +3,7 @@
   "displayName": "Auto CSS to JS",
   "description": "Convert CSS styles to JavaScript objects via a command or whenever they are pasted within valid context.",
   "publisher": "liberat0r",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "license": "MIT",
   "engines": {
     "vscode": "^1.84.0"
@@ -19,11 +19,13 @@
     "conversion"
   ],
   "activationEvents": [
+    "onStartupFinished",
     "onLanguage:javascript",
     "onLanguage:typescript",
     "onLanguage:javascriptreact",
     "onLanguage:typescriptreact",
-    "onCommand:auto-css-to-js.convert"
+    "onCommand:auto-css-to-js.convert",
+    "onCommand:auto-css-to-js.clipboardPasteAction"
   ],
   "main": "./out/extension.js",
   "icon": "images/icon.png",
@@ -36,6 +38,26 @@
       {
         "command": "auto-css-to-js.convert",
         "title": "Convert CSS to JS"
+      },
+      {
+        "command": "auto-css-to-js.clipboardPasteAction",
+        "title": "Paste with CSS to JS Conversion"
+      },
+      {
+        "command": "auto-css-to-js.resetKeybindingPrompt",
+        "title": "Reset CSS-to-JS Keybinding Prompt"
+      }
+    ],
+    "keybindings": [
+      {
+        "key": "ctrl+v",
+        "command": "auto-css-to-js.clipboardPasteAction",
+        "when": "editorTextFocus && !editorReadonly"
+      },
+      {
+        "key": "ctrl+v",
+        "command": "editor.action.clipboardPasteAction",
+        "when": "!editorTextFocus"
       }
     ],
     "configuration": {

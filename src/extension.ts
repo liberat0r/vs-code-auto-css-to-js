@@ -1,8 +1,37 @@
 import * as vscode from "vscode";
+import * as path from "path";
 
 export async function activate(context: vscode.ExtensionContext) {
+  console.log('Activating Auto CSS to JS extension');
+  
+  // Check if we've asked about keybinding before
+  const hasAskedAboutKeybinding = context.globalState.get('hasAskedAboutKeybinding', false);
+  console.log('Has asked about keybinding before:', hasAskedAboutKeybinding);
+  
+  if (!hasAskedAboutKeybinding) {
+    const answer = await vscode.window.showInformationMessage(
+      'Auto CSS-to-JS will use Ctrl+V for pasting in the editor, while keeping normal paste behavior elsewhere. Is this OK?',
+      'Yes', 'No'
+    );
+
+    if (answer === 'No') {
+      // User doesn't want our keybindings, disable the feature
+      await vscode.workspace.getConfiguration().update(
+        'autoCssToJs.enabled',
+        false,
+        vscode.ConfigurationTarget.Global
+      );
+      vscode.window.showInformationMessage(
+        'Auto CSS-to-JS paste feature has been disabled. You can re-enable it in settings.'
+      );
+    }
+
+    // Remember that we've asked
+    await context.globalState.update('hasAskedAboutKeybinding', true);
+  }
+
   // Register the manual command
-  let disposable = vscode.commands.registerCommand(
+  const disposable = vscode.commands.registerCommand(
     "auto-css-to-js.convert",
     async () => {
       const editor = vscode.window.activeTextEditor;
@@ -30,15 +59,28 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  context.subscriptions.push(disposable);
+
   // Register clipboard paste handler
   const pasteDisposable = vscode.commands.registerTextEditorCommand(
-    "editor.action.clipboardPasteAction",
+    "auto-css-to-js.clipboardPasteAction",
     async (editor: vscode.TextEditor) => {
+      console.log("PASTE");
       try {
+        // Check if we're actually in the editor
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor || activeEditor !== editor) {
+          console.log("Not in editor");
+          // If not in editor, execute default paste
+          await vscode.commands.executeCommand("editor.action.clipboardPasteAction");
+          return;
+        }
+
         // Check if the feature is enabled
         const config = vscode.workspace.getConfiguration("autoCssToJs");
         if (!config.get<boolean>("enabled", true)) {
-          await vscode.commands.executeCommand("default:type", { text: await vscode.env.clipboard.readText() });
+          console.log("Feature is disabled");
+          await vscode.commands.executeCommand("editor.action.clipboardPasteAction");
           return;
         }
 
@@ -50,20 +92,25 @@ export async function activate(context: vscode.ExtensionContext) {
         ];
 
         if (!supportedLanguages.includes(editor.document.languageId)) {
-          await vscode.commands.executeCommand("default:type", { text: await vscode.env.clipboard.readText() });
+          console.log("Language not supported:", editor.document.languageId);
+          await vscode.commands.executeCommand("editor.action.clipboardPasteAction");
           return;
         }
 
         // Get the clipboard text
         const clipboardText = await vscode.env.clipboard.readText();
         const pastedText = clipboardText.trim();
+        console.log("Clipboard text:", pastedText);
 
         // Quick early returns for obvious non-CSS content
-        if (!pastedText || 
-            pastedText.startsWith('{') || 
-            !pastedText.includes(':') || 
-            !/-/.test(pastedText)) {
-          await vscode.commands.executeCommand("default:type", { text: clipboardText });
+        if (
+          !pastedText ||
+          pastedText.startsWith("{") ||
+          !pastedText.includes(":") ||
+          !/-/.test(pastedText)
+        ) {
+          console.log("Text doesn't match basic CSS pattern");
+          await vscode.commands.executeCommand("editor.action.clipboardPasteAction");
           return;
         }
 
@@ -75,7 +122,8 @@ export async function activate(context: vscode.ExtensionContext) {
           pastedText.includes("fontSize") ||
           pastedText.includes("backgroundColor")
         ) {
-          await vscode.commands.executeCommand("default:type", { text: clipboardText });
+          console.log("Text looks like JS object");
+          await vscode.commands.executeCommand("editor.action.clipboardPasteAction");
           return;
         }
 
@@ -83,7 +131,8 @@ export async function activate(context: vscode.ExtensionContext) {
         const isCSS = looksLikeCSS(pastedText);
 
         if (!isCSS) {
-          await vscode.commands.executeCommand("default:type", { text: clipboardText });
+          console.log("Text doesn't look like CSS");
+          await vscode.commands.executeCommand("editor.action.clipboardPasteAction");
           return;
         }
 
@@ -114,6 +163,7 @@ export async function activate(context: vscode.ExtensionContext) {
             editor.document
           );
           const jsStyles = convertCSSToJS(pastedText, isSxProp);
+          console.log("Converted to JS:", jsStyles);
 
           // Insert the converted styles at the cursor position
           await editor.edit((editBuilder) => {
@@ -124,17 +174,31 @@ export async function activate(context: vscode.ExtensionContext) {
           await vscode.commands.executeCommand("editor.action.formatDocument");
         } else {
           // If not in a style context, just do a normal paste
-          await vscode.commands.executeCommand("default:type", { text: clipboardText });
+          await vscode.commands.executeCommand("editor.action.clipboardPasteAction");
         }
       } catch (error) {
         // If there's an error, fall back to normal paste
+        console.error("Error during paste handling:", error);
         const fallbackText = await vscode.env.clipboard.readText();
-        await vscode.commands.executeCommand("default:type", { text: fallbackText });
+        await vscode.commands.executeCommand("editor.action.clipboardPasteAction");
       }
     }
   );
 
-  context.subscriptions.push(disposable, pasteDisposable);
+  context.subscriptions.push(pasteDisposable);
+
+  // Register reset command
+  const resetDisposable = vscode.commands.registerCommand(
+    "auto-css-to-js.resetKeybindingPrompt",
+    async () => {
+      await context.globalState.update('hasAskedAboutKeybinding', false);
+      vscode.window.showInformationMessage('Keybinding prompt has been reset. Reload VS Code to see the prompt again.');
+    }
+  );
+
+  context.subscriptions.push(resetDisposable);
+
+  // Rest of the code remains the same
 }
 
 function looksLikeCSS(text: string): boolean {
